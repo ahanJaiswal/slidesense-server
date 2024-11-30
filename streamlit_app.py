@@ -4,6 +4,8 @@ import numpy as np
 from PIL import Image
 import io
 import base64
+from flask import Flask, request, jsonify
+import threading
 
 # Load TensorFlow model
 model = tf.keras.models.load_model("cancer_model.h5")
@@ -21,13 +23,25 @@ def predict(image_data):
     predictions = model.predict(preprocessed)
     return predictions
 
+# Flask app to handle requests
+app = Flask(__name__)
+
+@app.route('/predict', methods=['POST'])
+def api_predict():
+    data = request.get_json()
+    image_data = base64.b64decode(data['image'])  # base64 image data
+    predictions = predict(image_data)
+    return jsonify({"predictions": predictions.tolist()})
+
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+# Start Flask server in a separate thread
+threading.Thread(target=run_flask, daemon=True).start()
+
 # Streamlit interface
 st.title("SlideSense Prediction API")
 st.write("Use this API to send an image and get predictions.")
-
-# Backend API simulation
-if st.button("Start API"):
-    st.write("The API is ready. Send POST requests to this app for predictions.")
 
 # Interactive Demo for Testing
 uploaded_file = st.file_uploader("Upload Image", type=["png", "jpg", "bmp"])
@@ -35,3 +49,4 @@ if uploaded_file is not None:
     st.image(uploaded_file, caption="Uploaded Image")
     predictions = predict(uploaded_file.read())
     st.write(f"Predictions: {predictions}")
+
