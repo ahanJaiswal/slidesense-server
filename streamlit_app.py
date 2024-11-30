@@ -34,7 +34,7 @@ def api_predict():
     return jsonify({"predictions": predictions.tolist()})
 
 def run_flask():
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8501)
 
 # Start Flask server in a separate thread
 threading.Thread(target=run_flask, daemon=True).start()
